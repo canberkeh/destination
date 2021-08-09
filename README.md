@@ -62,6 +62,10 @@
 
 > 6- Run insert_to_db_from_api.py to insert country data to db
 
+    >   python app\insert_to_db_from_api.py
+
+> 7- Run wsgi.py to start
+
     >   python app\wsgi.py
 
 
