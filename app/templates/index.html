@@ -1,0 +1,99 @@
+  <!DOCTYPE html>
+  <html lang="en">
+
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <link rel="stylesheet" href="https://bootswatch.com/4/litera/bootstrap.min.css">
+      <title>Countries</title>
+  </head>
+
+  <body>
+      <nav class="navbar navbar-dark bg-warning  mb-3">
+          <div class="container">
+              <a href="/" class="navbar-brand">Countries</a>
+              <a href="/destinations" class="navbar-brand">Destinations</a>
+          </div>
+      </nav>
+      <br>
+      <div class="container">
+          <div class="search card card-body" style="border-radius: 10px;">
+              <h4>Choose a country to get informations</h4>
+              <form action="/" method="post">
+                  <p class="lead">
+                      <select name="country-selector" class="form-control" method="GET" action="/"
+                          style="border-radius: 10px;" required>
+                          <option value="" selected disabled hidden>Please Choose Country</option>
+                          {% for country in country_list  %}
+                          <option value="{{ country.country_name }}" required>
+                              {{ country.country_name }}
+                              {% endfor %}
+                          </option>
+                      </select>
+                      <br>
+                      <button type="submit" class="btn btn-warning">Find</button>
+              </form>
+          </div>
+          <br>
+          {% if country_info %}
+          {% for country in country_info %}
+          <div id="country">
+              <div class="card card-body mb-3" style="border-radius: 10px;">
+                  <div class="row">
+                      <div class="col-md-3">
+                          <img class="img-fluid mb-2" src="{{country.flag}}">
+                          <button class="btn badge badge-warning"
+                              onclick="window.open('https://en.wikipedia.org/wiki/{{country.name}}','_blank')">
+                              Wikipedia of {{country.name}}</button>
+                      </div>
+                      <div class="col-md-9" style="border-radius: 10px;">
+                          <span class="badge badge-primary">Name :
+                              {{country.name}}</span>
+                          <span class="badge badge-secondary">Domain:
+                              {{country.topLevelDomain}} </span>
+                          <span class="badge badge-success">Alpha Code:
+                              {{country.alpha3Code}} </span>
+                          <span class="badge badge-info">Capital:
+                              {{country.capital}}</span>
+                          <span class="badge badge-danger">Region:
+                              {{country.region}}</span>
+                          <br><br>
+                          <ul class="list-group">
+                              <li class="list-group-item">Population:
+                                  {{country.population}}
+                              </li>
+                              <li class="list-group-item">Area:
+                                  {{country.area}}
+                              </li>
+                              <li class="list-group-item">Timezones:
+                                  {{country.timezones}}
+                              </li>
+                              <li class="list-group-item">Languages:
+                                  {% for language in country.languages %}
+                                  {{ language.name }}
+                                  {% endfor %}
+                              </li>
+                          </ul>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      </div>
+
+      <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+          integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous">
+      </script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+          integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous">
+      </script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+          integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous">
+      </script>
+  </body>
+
+  </html>

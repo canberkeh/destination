@@ -1,0 +1,22 @@
+{% extends "destinations.html" %}
+{% block content %}
+{% if destination_list %}
+<div id="city">
+    <div class="card card-body mb-3" style="border-radius: 10px;">
+        <form action="/send_destinations" method="POST">
+            {% for destination in destination_list %}
+            <table style="width:100%">
+                <tr>
+                    <input type="checkbox" name="send_destinations" value="{{destination.id}}"
+                        style="border-radius: 10px;">
+                    {{ destination.description }} <br>
+                </tr>
+            </table>
+            {% endfor %}
+            <label for="email">E-Mail</label>
+            <input type="text" name="email" id="email" formaction="/send_destinations">
+            <button type="submit" class="btn btn-warning">Send</button>
+        </form>
+    </div>
+    {% endif %}
+    {% endblock %}

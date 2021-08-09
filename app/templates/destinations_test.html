@@ -1,0 +1,13 @@
+{% extends "destinations.html" %}
+{% block content %}
+{% if send_data %}
+{%for data in send_data %}
+
+<table style="width:100%">
+    <tr>
+        {{ data }} <br>
+    </tr>
+</table>
+{% endfor %}
+{% endif %}
+{% endblock %}
