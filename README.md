@@ -26,7 +26,7 @@
 
 > 1- init alembic
 
-    alembic init
+    alembic init alembic
 
 >
 
@@ -68,6 +68,9 @@
 
     >   python app\wsgi.py
 
+> 8- Run celery worker
+
+    >   celery -A app.celery_worker worker --pool=solo -l info  (--pool=solo for windows)
 
 -----------------------------
 ![s3](https://user-images.githubusercontent.com/73230039/126903970-876f2a24-a693-4751-ac3f-a3a90d3304c4.png)

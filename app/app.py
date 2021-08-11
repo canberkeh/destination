@@ -1,13 +1,20 @@
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 from sqlalchemy.util.langhelpers import NoneType
-from model import *
-from database import Session
+from .model import *
+from .database import Session
+from .celery_worker import celery_app
 import requests
 from flask_mail import Mail, Message
-from celery_worker import celery_app
-
-
+from decouple import config
 app = Flask(__name__)
+
+# Flask-mail conf
+app.config['MAIL_SERVER'] = 'smtp.live.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = config('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = config('MAIL_PASSWORD')
+mail = Mail(app)
 
 
 # Country list has been added to db via restcountries
@@ -19,7 +26,7 @@ api_url = "https://restcountries.eu/rest/v2/name/"
 def index():
     if request.method == "POST":
         name = request.form.get("country-selector")
-        if name != None: 
+        if name != None:
             response_country = requests.get(api_url + name)
             country_info = response_country.json()
             return render_template("index.html", country_info=country_info, country_list=country_list)
@@ -92,33 +99,29 @@ def send_destinations():
             ).filter(Description.id == int(description_id)).all()
             for i in result:
                 send_data.append(i)
-        send_async_email()
-    return render_template("destinations_test.html", send_data=send_data)
+        msg = ""
+        for data in send_data:
+            (country, city, desc) = data
+            msg += str(country) + ' ' + str(city) + ' ' + str(desc) + '\n'
+        email_data = {
+            'subject': 'Your destinations',
+            'to': email,
+            'body': msg
+        }
+        print(email_data)
+        send_async_email.delay(email_data)
+        return render_template("destination_list.html", country_list=country_list)
 
 
-# Flask-mail conf
-app.config['MAIL_SERVER'] = 'smtp.live.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'testpython1192@hotmail.com'
-app.config['MAIL_PASSWORD'] = 'berke1192'
-mail = Mail(app)
-
-
-@celery_app.task
-def send_async_email():
+@celery_app.task(serializer='json')
+def send_async_email(email_data):
     """Background task to send an email with Flask-Mail."""
-    try:
-        msg = Message("Deneme test mail",
-                      sender=app.config['MAIL_USERNAME'],
-                      recipients=["testmail@gmail.com"])
-        msg.body = "Merhaba!\n Test Deneme Mail"
+    msg = Message(email_data['subject'],
+                    sender=app.config['MAIL_USERNAME'],
+                    recipients=[email_data['to']])
+    msg.body = email_data['body']
+    with app.app_context():
         mail.send(msg)
-        return 'Mail başarıyla gönderildi!'
-    except Exception as e:
-        return(str(e))
-
-
 # def test():   # SMTP ile mail atılacak tüm veriler bu join ile çekilecek.
 #     result = Session.session.query(
 #         Country, City, Description,
@@ -132,3 +135,5 @@ def send_async_email():
 #         list1.append(i)
 #     print(list1)
 # test()
+if __name__ == '__main__':
+    app.run(debug=True)

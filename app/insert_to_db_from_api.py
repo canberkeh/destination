@@ -1,8 +1,5 @@
-from os import name
-from flask import Flask, render_template, request
-from sqlalchemy.orm.session import Session
-from model import Country, City, Description
-from sqlalchemy import engine, create_engine, insert
+from model import Country
+from sqlalchemy import engine, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import requests
@@ -34,9 +31,9 @@ def insert_to_db():
                 country_list.append(country_dict["name"])
     
     for each_country in country_list:
-        # print(each_country)
         country = Country(country_name=each_country)
         session.add(country)
         session.commit()
+        print("Insert successful")
     
 insert_to_db()
