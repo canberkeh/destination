@@ -13,7 +13,7 @@
       <nav class="navbar navbar-dark bg-warning  mb-3">
           <div class="container">
               <a href="/" class="navbar-brand">Countries</a>
-              <a href="/destinations" class="navbar-brand">Destinations</a>
+              <a href="/country" class="navbar-brand">Destinations</a>
           </div>
       </nav>
       <br>
@@ -21,9 +21,8 @@
           <div class="search card card-body" style="border-radius: 10px;">
               <h4>Choose a country to get informations</h4>
               <form action="/" method="post">
-                  <p class="lead">
-                      <select name="country-selector" class="form-control" method="GET" action="/"
-                          style="border-radius: 10px;" required>
+                      <select name="country-selector" class="form-control" method="GET" style="border-radius: 10px;"
+                          required>
                           <option value="" selected disabled hidden>Please Choose Country</option>
                           {% for country in country_list  %}
                           <option value="{{ country.country_name }}" required>

@@ -1,0 +1,42 @@
+{% extends "country.html" %}
+{% block content %}
+{% if city_list %}
+<div id="city">
+    <div class="card card-body mb-3" style="border-radius: 10px;">
+        <div class="row">
+            <div class="col-md-3">
+                <span>{% for country in country_name %}
+                    {{ country.country_name }}
+                    {% endfor %}</span>
+                <form action="/destinations" method="POST">
+                    <select name="city-selector" class="form-control" method="GET" style="border-radius: 10px;"
+                        required>
+                        <option value="" selected disabled hidden>Please Choose Country</option>
+                        {% for city in city_list  %}
+                        <option value="{{ city.id }}">
+                            {{ city.city_name }}
+                            {% endfor %}
+                        </option>
+                    </select><br>
+                    <button type="submit" class="btn btn-warning">List
+                        Destinations</button></form><br>
+                <form action="/add_city">
+                    <button type="" class="btn btn-warning">Add City</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div id="add-city">
+        <div class="card card-body mb-3" style="border-radius: 10px;">
+            <div class="row">
+                <div class="col-md-3">
+                    <form action="/add_city" method="POST">
+                        Add city! <button type="submit" class="btn btn-warning">Add City</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% endblock %}
