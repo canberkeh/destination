@@ -1,7 +1,7 @@
 flask==2.0.1
 SQLAlchemy==1.4.22
 alembic==1.6.5
-celery==5.1.2
+celery==4.4.6
 requests==2.26.0
 Flask-Mail==0.9.1
 python-decouple==3.4

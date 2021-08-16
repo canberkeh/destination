@@ -26,44 +26,6 @@ country_list = Session.session.query(Country).all()
 api_url = "https://restcountries.eu/rest/v2/name/"
 
 
-@app.route("/add_city", methods=["GET", "POST"])
-def add_city():
-    if request.method == "POST":
-        country_id = request.form.get("country-selector")
-        city_name = request.form.get("city-name")
-        print(country_id, city_name)
-        city_record = City(country_id=country_id, city_name=city_name)
-        Session.session.add(city_record)
-        Session.session.commit()
-
-        return render_template("country.html", country_list=country_list)
-    else:
-        return render_template("add_city.html", country_list=country_list)
-
-@app.route("/add_destination", methods=["GET", "POST"])
-def add_destination():
-    
-    city_id = request.form.get("city-selector")
-    description = request.form.get("add-destination")
-    destination_record = Description(city_id=city_id, description=description)
-
-    Session.session.add(destination_record)
-    Session.session.commit()
-
-    return render_template("city_list.html", country_list=country_list)
-
-
-
-@app.route("/list_destinations", methods=["GET", "POST"])
-def list_destinations():
-    if request.method == "POST":
-        id = request.form.get("city-selector")
-        destination_list = Session.session.query(
-            Description).filter_by(city_id=id).all()
-
-    return render_template("destination_list.html", country_list=country_list, destination_list=destination_list)
-
-
 @app.route("/send_destinations", methods=["GET", "POST"])
 def send_destinations():
     if request.method == "POST":
@@ -98,8 +60,8 @@ def send_destinations():
 def send_async_email(email_data):
     """Background task to send an email with Flask-Mail."""
     msg = Message(email_data['subject'],
-                    sender=app.config['MAIL_USERNAME'],
-                    recipients=[email_data['to']])
+                  sender=app.config['MAIL_USERNAME'],
+                  recipients=[email_data['to']])
     msg.body = email_data['body']
     with app.app_context():
         mail.send(msg)
@@ -129,11 +91,34 @@ def city():
     if request.method == "POST":
         country_id = request.form.get("country-selector")
         if country_id != None:
+            country = Session.session.query(Country).get(country_id)
             city_list = Session.session.query(City).filter_by(country_id=country_id).all()
-            country_name = Session.session.query(Country).filter_by(id = country_id)
-            return render_template("city.html", country_list = country_list, country_name = country_name, city_list = city_list)
+            return render_template("country.html", country_list=country_list, selected_country=country, city_list=city_list)
         return render_template("country.html", country_list=country_list)
 
+
+@app.route("/add_city", methods=["GET", "POST"])
+def add_city():
+    if request.method == "POST":
+        country_id = request.form.get("country-id")
+        city_name = request.form.get("city-name")
+        city_record = City(country_id=country_id, city_name=city_name)
+        Session.session.add(city_record)
+        Session.session.commit()
+
+        return render_template("country.html", country_list=country_list)
+    else:
+        return render_template("add_city.html", country_list=country_list)
+
+
+@app.route("/list_destinations", methods=["GET", "POST"])
+def list_destinations():
+    if request.method == "POST":
+        city_id = request.form.get("city-selector")
+        if city_id != None:
+            destination_list = Session.session.query(Description).filter_by(city_id=city_id).all()
+            print(destination_list)
+            return render_template("country.html", country_list=country_list, destination_list=destination_list)
 
 # def test():   # SMTP ile mail atılacak tüm veriler bu join ile çekilecek.
 #     result = Session.session.query(

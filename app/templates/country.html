@@ -24,19 +24,98 @@
                 <select name="country-selector" class="form-control" method="GET" style="border-radius: 10px;" required>
                     <option value="" selected disabled hidden>Please Choose Country</option>
                     {% for country in country_list  %}
+                    {% if selected_country and selected_country.id == country.id %}
+                    <option value="{{ country.id }}" selected>
+                        {{ country.country_name }}
+                    </option>
+                    {% else %}
                     <option value="{{ country.id }}">
                         {{ country.country_name }}
-                        {% endfor %}
                     </option>
+                    {% endif %}
+                    {% endfor %}
                 </select>
                 <br>
                 <button type="submit" class="btn btn-warning">List Cities</button>
             </form>
         </div>
         <br>
-        {% block content %}
+        {% if selected_country and city_list %}
+        <div class="card card-body mb-3" style="border-radius: 10px;">
+            <div class="row">
+                <div class="col-md-3">
+                    <form action="/list_destinations" method="POST">
+                            <select name="city-selector" class="form-control" method="GET" style="border-radius: 10px;"
+                                required>
+                                <option value="" selected disabled hidden>Please Choose City</option>
+                                {% for city in city_list %}
+                                <option value="{{ city.id }}" SELECTED required>
+                                    {{ city }} {% endfor %}
+                                </option>
+                               
+                            </select><br>
+                            <button type="submit" class="btn btn-warning">List
+                                Destinations</button>
+                    </form>
+                    <button type="submit" id="add-city-button" class="btn btn-warning" onclick="showfield(this.value)"
+                        )>Add City</button>
+                    <form style="width:500px; display:inline-block;" action="/add_city" method="POST">
+                        <div id="hidden-city-input"></div>
+                    </form>
 
-        {% endblock %}
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            function showfield(id) {
+                if (id != null) {
+                    document.getElementById('add-city-button').style.display = "none";
+                    document.getElementById('hidden-city-input').innerHTML =
+                        '<label for="text">City Name</label>&#32;<input type="hidden" name="country-id" value="{{selected_country.id}}"><input type="text" name="city-name" style="border-radius: 10px;"/>&#32;<button type="submit" class="btn btn-warning">Add City</button>';
+                }
+            }
+        </script>
+        {% elif selected_country %}
+        <div class="card card-body mb-3" style="border-radius: 10px;">
+            <div class="row">
+                <div class="col-md-3">
+                    <form action="/add_city" method="POST">
+                        <label for="">Add first city</label>
+                        <input type="hidden" name="country-id" value="{{selected_country.id}}">
+                        <input type="text" name="city-name" style="border-radius: 10px;" /><br><br>
+                        <button type="submit" id="add-city-button" class="btn btn-warning">Add City</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if destination_list %}
+        <div id="destination">
+            <div class="card card-body mb-3" style="border-radius: 10px;">
+                <form action="/send_destinations" method="POST">
+                    {% for destination in destination_list %}
+                    <table style="width:100%">
+                        <tr>
+                            <input type="checkbox" name="send_destinations" value="{{destination.id}}"
+                                style="border-radius: 10px;">
+                            {{ destination.description }} <br>
+                        </tr>
+                    </table>
+                    {% endfor %}
+                    <label for="email">E-Mail</label>
+                    <input type="text" name="email" id="email" formaction="/send_destinations">
+                    <button type="submit" class="btn btn-warning">Send</button>
+                </form>
+            </div>
+        </div>
+        <div id="destination">
+            <div class="card card-body mb-3" style="border-radius: 10px;">
+
+            </div>
+        </div>
+        {% endif %}
+
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
             integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous">
         </script>

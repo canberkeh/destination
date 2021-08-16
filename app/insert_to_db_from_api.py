@@ -34,6 +34,6 @@ def insert_to_db():
         country = Country(country_name=each_country)
         session.add(country)
         session.commit()
-        print("Insert successful")
+    print("Insert successful")
     
 insert_to_db()
