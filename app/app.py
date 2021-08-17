@@ -1,13 +1,11 @@
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
-from sqlalchemy.sql.functions import count
-from sqlalchemy.util.langhelpers import NoneType
+from flask import Flask, render_template, request, jsonify
 from .model import *
 from .database import Session
 from .celery_worker import celery_app
 import requests
 from flask_mail import Mail, Message
 from decouple import config
-
+import sqlite3
 
 app = Flask(__name__)
 
@@ -26,45 +24,13 @@ country_list = Session.session.query(Country).all()
 api_url = "https://restcountries.eu/rest/v2/name/"
 
 
-@app.route("/send_destinations", methods=["GET", "POST"])
-def send_destinations():
-    if request.method == "POST":
-        desc_id = request.form.getlist('send_destinations')
-        email = request.form.get('email')
-        send_data = []
-        for description_id in desc_id:  # for ile değil/query içerisinde toplu olarak dönecek
-            result = Session.session.query(
-                Country, City, Description,
-            ).filter(
-                Country.id == City.country_id,
-            ).filter(
-                City.id == Description.city_id,
-            ).filter(Description.id == int(description_id)).all()
-            for i in result:
-                send_data.append(i)
-        msg = ""
-        for data in send_data:
-            (country, city, desc) = data
-            msg += str(country) + ' ' + str(city) + ' ' + str(desc) + '\n'
-        email_data = {
-            'subject': 'Your destinations',
-            'to': email,
-            'body': msg
-        }
-        print(email_data)
-        send_async_email.delay(email_data)
-        return render_template("destination_list.html", country_list=country_list)
-
-
-@celery_app.task(serializer='json')
-def send_async_email(email_data):
-    """Background task to send an email with Flask-Mail."""
-    msg = Message(email_data['subject'],
-                  sender=app.config['MAIL_USERNAME'],
-                  recipients=[email_data['to']])
-    msg.body = email_data['body']
-    with app.app_context():
-        mail.send(msg)
+@app.route('/api/country/all', methods=['GET'])
+def api_country():
+    # country = Session.session.query(Country).all()
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    country = cur.execute('SELECT * FROM country;').fetchall()
+    return jsonify(country)
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -111,14 +77,66 @@ def add_city():
         return render_template("add_city.html", country_list=country_list)
 
 
-@app.route("/list_destinations", methods=["GET", "POST"])
-def list_destinations():
+@app.route("/destinations", methods=["GET", "POST"])
+def destinations():
     if request.method == "POST":
         city_id = request.form.get("city-selector")
         if city_id != None:
             destination_list = Session.session.query(Description).filter_by(city_id=city_id).all()
-            print(destination_list)
-            return render_template("country.html", country_list=country_list, destination_list=destination_list)
+            return render_template("country.html",country_list = country_list, city_id=city_id, destination_list=destination_list)
+        else:
+            return render_template("country.html", country_list=country_list)
+
+@app.route("/add_destination", methods=["GET", "POST"])
+def add_destination():
+    city_id = request.form.get("city-id")
+    description = request.form.get("add-destination")
+    destination_record = Description(city_id=city_id, description=description)
+    Session.session.add(destination_record)
+    Session.session.commit()
+    destination_list = Session.session.query(Description).filter_by(city_id=city_id).all()   ###### buraya gelince tekrar list_destinations çağırılabilir mi??
+    return render_template("country.html", country_list=country_list, city_id=city_id, destination_list = destination_list)
+
+
+@app.route("/send_destinations", methods=["GET", "POST"])
+def send_destinations():
+    if request.method == "POST":
+        desc_id = request.form.getlist('send_destinations')
+        email = request.form.get('email')
+        send_data = []
+        for description_id in desc_id:  # for ile değil/query içerisinde toplu olarak dönecek
+            result = Session.session.query(
+                Country, City, Description,
+            ).filter(
+                Country.id == City.country_id,
+            ).filter(
+                City.id == Description.city_id,
+            ).filter(Description.id == int(description_id)).all()
+            for i in result:
+                send_data.append(i)
+        msg = ""
+        for data in send_data:
+            (country, city, desc) = data
+            msg += str(country) + ' ' + str(city) + ' ' + str(desc) + '\n'
+        email_data = {
+            'subject': 'Your destinations',
+            'to': email,
+            'body': msg
+        }
+        print(email_data)
+        send_async_email.delay(email_data)
+        return render_template("destination_list.html", country_list=country_list)
+
+
+@celery_app.task(serializer='json')
+def send_async_email(email_data):
+    """Background task to send an email with Flask-Mail."""
+    msg = Message(email_data['subject'],
+                  sender=app.config['MAIL_USERNAME'],
+                  recipients=[email_data['to']])
+    msg.body = email_data['body']
+    with app.app_context():
+        mail.send(msg)
 
 # def test():   # SMTP ile mail atılacak tüm veriler bu join ile çekilecek.
 #     result = Session.session.query(
