@@ -6,6 +6,9 @@ import requests
 from flask_mail import Mail, Message
 from decouple import config
 import sqlite3
+from flasgger import Swagger
+from flasgger.utils import swag_from
+
 
 app = Flask(__name__)
 
@@ -19,18 +22,77 @@ app.config['MAIL_PASSWORD'] = config('MAIL_PASSWORD')
 mail = Mail(app)
 
 
+app.config['SWAGGER'] = {'TITLE': 'swagger', 'uiversion': 2}
+swagger_config = {
+    'headers': [],
+    'specs': [
+        {
+            'endpoint': 'apispec_1',
+            'route': '/apispec_1.json'
+        }
+    ],
+    'static_url_path': "/flasgger_static",
+    'swagger_ui': True,
+    'specs_route': "/swagger/",
+}
+
+swagger = Swagger(app, config=swagger_config)
+
+
 # Country list has been added to db via restcountries
 country_list = Session.session.query(Country).all()
 api_url = "https://restcountries.eu/rest/v2/name/"
 
 
-@app.route('/api/country/all', methods=['GET'])
-def api_country():
-    # country = Session.session.query(Country).all()
+# class AllCountryData(Resource):
+#     def get(self):
+#         # country = cur.execute('SELECT * FROM country;').fetchall()
+#         country = Country.query.all()
+#         result = users_schema.dump(country)
+#         return jsonify(country)
+# api.add_resource(AllCountryData, "/countryapi/all")
+
+
+@app.route('/api/countries', methods=['GET'])
+@swag_from('swagger/get_countries_config.yaml')
+def get_country_list():
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
-    country = cur.execute('SELECT * FROM country;').fetchall()
+    countries = cur.execute(f'SELECT * FROM country;').fetchall()
+    return jsonify(countries)
+
+
+@app.route('/api/countries/<id>', methods=['GET'])
+@swag_from('swagger/get_country_config.yaml')
+def get_country(id):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    country = cur.execute(f'SELECT * FROM country where id={id};').fetchall()
     return jsonify(country)
+
+
+@app.route('/api/countries/<country_id>/cities', methods=['GET'])
+@swag_from('swagger/get_cities_config.yaml')
+def get_city_list(country_id):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cities = cur.execute(f'SELECT * FROM city where country_id={country_id};').fetchall()
+    return jsonify(cities)
+
+
+@app.route('/api/countries/<country_id>/cities', methods=['POST'])
+@swag_from('swagger/post_city_config.yaml')
+def post_city(country_id):
+    input_json = request.get_json()
+    name = input_json["name"]
+
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    city = cur.execute(f'INSERT INTO city ("country_id", "city_name") VALUES ({country_id}, "{name}");')
+    conn.commit()
+    return jsonify({
+        'success': 'success'
+    })
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -138,16 +200,4 @@ def send_async_email(email_data):
     with app.app_context():
         mail.send(msg)
 
-# def test():   # SMTP ile mail atılacak tüm veriler bu join ile çekilecek.
-#     result = Session.session.query(
-#         Country, City, Description,
-#         ).filter(
-#             Country.id==City.country_id,
-#         ).filter(
-#             City.id==Description.city_id,
-#         ).filter(Description.id == 1).all()
-#     list1=[]
-#     for i in result:
-#         list1.append(i)
-#     print(list1)
-# test()
+

@@ -1,0 +1,12 @@
+summary: "Get All Countries"
+description: "This is a simple API which returns country list"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+responses:
+  200:
+    description: "Country List"
+
+
+

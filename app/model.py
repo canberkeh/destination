@@ -20,9 +20,6 @@ class Country(Base):
     def __repr__(self):
         return self.country_name
 
-    def json(self):
-        return {'country_name': self.country_name}
-
 
 class City(Base):
     __tablename__ = 'city'

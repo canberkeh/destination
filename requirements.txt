@@ -5,4 +5,4 @@ celery==4.4.6
 requests==2.26.0
 Flask-Mail==0.9.1
 python-decouple==3.4
-Flask-RESTful==0.3.9
+flasgger==0.9.5

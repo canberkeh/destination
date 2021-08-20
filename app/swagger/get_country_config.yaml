@@ -1,0 +1,16 @@
+summary: "Get Country"
+description: "This is a simple API which returns country"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+parameters:
+- in: "path"
+  name: "id"
+  type: "integer"
+  required: true
+responses:
+  200:
+    description: "Country"
+  500:
+    description: "Invalid input"
