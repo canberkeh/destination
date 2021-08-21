@@ -1,7 +1,9 @@
 from decouple import config
 from flask_mail import Mail
+from run import app
 
-def mail_config(app):
+
+def mail_config():
     # Flask-mail conf
     app.config['MAIL_SERVER'] = 'smtp.live.com'
     app.config['MAIL_PORT'] = 587

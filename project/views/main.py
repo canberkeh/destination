@@ -1,75 +1,17 @@
 '''Main entrypoint'''
-from flask import Flask, render_template, request, jsonify
+from flask import render_template, request
 import requests
 from flask_mail import Message
-from flasgger.utils import swag_from
-from project.config.swagger_setup import swagger_config
+from run import app
 from project.model import Country, City, Description
 from project.config.database import session
 from project.config.celery_worker import celery_app
 from project.config.mail_setup import mail_config
 
 
-app = Flask(__name__)
-swagger_config(app)
-
-
 # Country list has been added to db via restcountries
 API_URL = "https://restcountries.eu/rest/v2/name/"
 country_list = session.query(Country).all()
-
-
-@app.route('/api/countries', methods=['GET'])
-@swag_from('swagger/get_countries_config.yaml')
-def get_country_list():
-    '''Returns all countries in swagger'''
-    countries = [country.serializer() for country in Country.query.all()]
-    return jsonify(countries)
-
-
-@app.route('/api/countries/<country_id>', methods=['GET'])
-@swag_from('swagger/get_country_config.yaml')
-def get_country(country_id):
-    '''Returns country by id in swagger'''
-    country = Country.query.filter_by(id=country_id).first()
-    country = country.serializer()
-    return jsonify(country)
-
-
-@app.route('/api/countries/<country_id>/cities', methods=['GET'])
-@swag_from('swagger/get_cities_config.yaml')
-def get_city_list(country_id):
-    '''Returns cities by country_id in swagger'''
-    cities = [city.serializer()
-              for city in City.query.filter_by(country_id=country_id).all()]
-    return jsonify(cities)
-
-
-@app.route('/api/countries/<country_id>/cities', methods=['POST'])
-@swag_from('swagger/post_city_config.yaml')
-def post_city(country_id):
-    '''Create city by id in swagger'''
-    input_json = request.get_json()
-    city_name = input_json["name"]
-    city_record = City(country_id=country_id, city_name=city_name)
-    session.add(city_record)
-    session.commit()
-    session.close()
-    return jsonify({
-        'success': country_id + ' ' + city_name + ' posted!'
-    })
-
-
-@app.route('/api/countries/<city_id>/cities', methods=['DELETE'])
-@swag_from('swagger/delete_city_config.yaml')
-def delete_city(city_id):
-    '''Delete city by id in swagger'''
-    city = session.query(City).get(city_id)
-    session.delete(city)
-    session.commit()
-    return jsonify({
-        'success': city.city_name + ' deleted'
-    })
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -183,7 +125,7 @@ def send_destinations():
 @celery_app.task(serializer='json')
 def send_async_email(email_data):
     '''Background task to send an email with Flask-Mail.'''
-    mail = mail_config(app)
+    mail = mail_config()
     msg = Message(email_data['subject'],
                   sender=app.config['MAIL_USERNAME'],
                   recipients=[email_data['to']])

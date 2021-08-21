@@ -12,5 +12,7 @@ parameters:
 responses:
   200:
     description: "Country"
-  500:
+  400:
+    description: "Bad request"
+  404:
     description: "Invalid input"

@@ -41,7 +41,7 @@ $ pip install -r requirements.txt
 
 >
 
-> 2- set alembic.ini file 
+> 2- set alembic.ini file
 
     >  sqlalchemy.url = sqlite:///project/database.db
 
@@ -80,7 +80,7 @@ $ pip install -r requirements.txt
 
 > 8- Run celery worker
 
-    >   celery -A oroject.celery_worker worker --pool=solo -l info  (--pool=solo for windows)
+    >   celery -A project.config.celery_worker worker --pool=solo -l info  (--pool=solo for windows)
 
 ### Run Project
 
