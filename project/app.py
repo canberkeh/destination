@@ -1,16 +1,15 @@
-from flask import Flask, render_template, request, jsonify, g
-from .model import *
-from .database import session
-from .celery_worker import celery_app
+from flask import Flask, render_template, request, jsonify
 import requests
 from flask_mail import Mail, Message
 from decouple import config
 from flasgger import Swagger
 from flasgger.utils import swag_from
-
+from project.model import *
+from project.database import session
+from project.celery_worker import celery_app
+# from project.mail_config import mail
 
 app = Flask(__name__)
-mail = Mail(app)
 
 # Flask-mail conf
 app.config['MAIL_SERVER'] = 'smtp.live.com'
@@ -18,7 +17,7 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = config('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = config('MAIL_PASSWORD')
-
+mail = Mail(app)
 
 app.config['SWAGGER'] = {'TITLE': 'swagger', 'uiversion': 2}
 swagger_config = {
@@ -60,7 +59,8 @@ def get_country(id):
 @app.route('/api/countries/<country_id>/cities', methods=['GET'])
 @swag_from('swagger/get_cities_config.yaml')
 def get_city_list(country_id):
-    cities = [city.serializer() for city in City.query.filter_by(country_id=country_id).all()]
+    cities = [city.serializer()
+              for city in City.query.filter_by(country_id=country_id).all()]
     return jsonify(cities)
 
 
@@ -89,7 +89,6 @@ def delete_city(id):
     })
 
 
-
 @app.route('/', methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -115,7 +114,8 @@ def city():
         country_id = request.form.get("country-selector")
         if country_id != None:
             country = session.query(Country).get(country_id)
-            city_list = session.query(City).filter_by(country_id=country_id).all()
+            city_list = session.query(City).filter_by(
+                country_id=country_id).all()
             return render_template("country.html", country_list=country_list, selected_country=country, city_list=city_list)
         return render_template("country.html", country_list=country_list)
 
@@ -139,8 +139,9 @@ def destinations():
     if request.method == "POST":
         city_id = request.form.get("city-selector")
         if city_id != None:
-            destination_list = session.query(Description).filter_by(city_id=city_id).all()
-            return render_template("country.html",country_list = country_list, city_id=city_id, destination_list=destination_list)
+            destination_list = session.query(
+                Description).filter_by(city_id=city_id).all()
+            return render_template("country.html", country_list=country_list, city_id=city_id, destination_list=destination_list)
         else:
             return render_template("country.html", country_list=country_list)
 
@@ -152,8 +153,9 @@ def add_destination():
     destination_record = Description(city_id=city_id, description=description)
     session.add(destination_record)
     session.commit()
-    destination_list = session.query(Description).filter_by(city_id=city_id).all()
-    return render_template("country.html", country_list=country_list, city_id=city_id, destination_list = destination_list)
+    destination_list = session.query(
+        Description).filter_by(city_id=city_id).all()
+    return render_template("country.html", country_list=country_list, city_id=city_id, destination_list=destination_list)
 
 
 @app.route("/send_destinations", methods=["GET", "POST"])
@@ -175,7 +177,7 @@ def send_destinations():
         msg = ""
         for data in send_data:
             (country, city, desc) = data
-            msg += str(country) + ' ' + str(city) + ' ' + str(desc) + '\n'
+            msg += ' * ' + str(country.country_name) + ' ' + str(city.city_name) + ' ' + str(desc) + '\n'
         email_data = {
             'subject': 'Your destinations',
             'to': email,
@@ -183,7 +185,7 @@ def send_destinations():
         }
         print(email_data)
         send_async_email.delay(email_data)
-        return render_template("destination_list.html", country_list=country_list)
+    return render_template("country.html", country_list=country_list)
 
 
 @celery_app.task(serializer='json')
@@ -195,4 +197,3 @@ def send_async_email(email_data):
     msg.body = email_data['body']
     with app.app_context():
         mail.send(msg)
-

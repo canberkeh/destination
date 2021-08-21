@@ -43,7 +43,7 @@ $ pip install -r requirements.txt
 
 > 2- set alembic.ini file 
 
-    >  sqlalchemy.url = sqlite:///app/database.db
+    >  sqlalchemy.url = sqlite:///project/database.db
 
 >
 
@@ -51,7 +51,7 @@ $ pip install -r requirements.txt
 
 >
 
-    > from app.model import Base
+    > from project.model import Base
 
 >
 
@@ -73,19 +73,19 @@ $ pip install -r requirements.txt
 
 > 6- Run insert_to_db_from_api.py to insert country data to db
 
-    >   python app\insert_to_db_from_api.py
+    >   python project\insert_to_db_from_api.py
 
 
 ### Start Celery worker
 
 > 8- Run celery worker
 
-    >   celery -A app.celery_worker worker --pool=solo -l info  (--pool=solo for windows)
+    >   celery -A oroject.celery_worker worker --pool=solo -l info  (--pool=solo for windows)
 
 ### Run Project
 
 ```
-    >   python app\run.py
+    >   python project\run.py
 ```
 
 -----------------------------

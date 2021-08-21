@@ -10,7 +10,7 @@ celery_beat_schedule = {
 celery_app = Celery('app',
             broker=config('BROKER_URL'),
             backend="amqp://",
-            include = ['app.app'])
+            include = ['project.app'])
 
 celery_app.conf.update(result_expires=3600, beat_schedule=celery_beat_schedule,)
 
