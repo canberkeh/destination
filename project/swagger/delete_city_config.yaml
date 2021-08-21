@@ -6,7 +6,7 @@ produces:
 - "application/json"
 parameters:
 - in: "path"
-  name: "id"
+  name: "city_id"
   type: "integer"
   schema:
     type: "object"

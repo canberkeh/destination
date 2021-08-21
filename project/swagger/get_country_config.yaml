@@ -6,7 +6,7 @@ produces:
 - "application/json"
 parameters:
 - in: "path"
-  name: "id"
+  name: "country_id"
   type: "integer"
   required: true
 responses:

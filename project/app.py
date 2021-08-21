@@ -1,10 +1,10 @@
-from project.config.swagger_setup import swagger_config
+'''Main entrypoint'''
 from flask import Flask, render_template, request, jsonify
 import requests
-from flask_mail import Mail, Message
-from decouple import config
+from flask_mail import Message
 from flasgger.utils import swag_from
-from project.model import *
+from project.config.swagger_setup import swagger_config
+from project.model import Country, City, Description
 from project.config.database import session
 from project.config.celery_worker import celery_app
 from project.config.mail_setup import mail_config
@@ -22,14 +22,16 @@ country_list = session.query(Country).all()
 @app.route('/api/countries', methods=['GET'])
 @swag_from('swagger/get_countries_config.yaml')
 def get_country_list():
+    '''Returns all countries in swagger'''
     countries = [country.serializer() for country in Country.query.all()]
     return jsonify(countries)
 
 
-@app.route('/api/countries/<id>', methods=['GET'])
+@app.route('/api/countries/<country_id>', methods=['GET'])
 @swag_from('swagger/get_country_config.yaml')
-def get_country(id):
-    country = Country.query.filter_by(id=id).first()
+def get_country(country_id):
+    '''Returns country by id in swagger'''
+    country = Country.query.filter_by(id=country_id).first()
     country = country.serializer()
     return jsonify(country)
 
@@ -37,6 +39,7 @@ def get_country(id):
 @app.route('/api/countries/<country_id>/cities', methods=['GET'])
 @swag_from('swagger/get_cities_config.yaml')
 def get_city_list(country_id):
+    '''Returns cities by country_id in swagger'''
     cities = [city.serializer()
               for city in City.query.filter_by(country_id=country_id).all()]
     return jsonify(cities)
@@ -45,6 +48,7 @@ def get_city_list(country_id):
 @app.route('/api/countries/<country_id>/cities', methods=['POST'])
 @swag_from('swagger/post_city_config.yaml')
 def post_city(country_id):
+    '''Create city by id in swagger'''
     input_json = request.get_json()
     city_name = input_json["name"]
     city_record = City(country_id=country_id, city_name=city_name)
@@ -56,10 +60,11 @@ def post_city(country_id):
     })
 
 
-@app.route('/api/countries/<id>/cities', methods=['DELETE'])
+@app.route('/api/countries/<city_id>/cities', methods=['DELETE'])
 @swag_from('swagger/delete_city_config.yaml')
-def delete_city(id):
-    city = session.query(City).get(id)
+def delete_city(city_id):
+    '''Delete city by id in swagger'''
+    city = session.query(City).get(city_id)
     session.delete(city)
     session.commit()
     return jsonify({
@@ -69,63 +74,69 @@ def delete_city(id):
 
 @app.route('/', methods=["GET", "POST"])
 def index():
+    '''Homepage'''
     if request.method == "POST":
         name = request.form.get("country-selector")
-        if name != None:
+        if name:
             response_country = requests.get(API_URL + name)
             country_info = response_country.json()
-            return render_template("index.html", country_info=country_info, country_list=country_list)
-        else:
-            return render_template("index.html", country_list=country_list)
-    else:
+            return render_template("index.html", country_info=country_info,
+                                                 country_list=country_list)
         return render_template("index.html", country_list=country_list)
+    return render_template("index.html", country_list=country_list)
 
 
 @app.route('/country', methods=["GET"])
-def country():
+def list_country():
+    '''Returns all countries'''
     return render_template("country.html", country_list=country_list)
 
 
 @app.route('/city', methods=["GET", "POST"])
-def city():
+def list_city():
+    '''Returns city list by country_id'''
     if request.method == "POST":
         country_id = request.form.get("country-selector")
         if country_id:
             country = session.query(Country).get(country_id)
             city_list = session.query(City).filter_by(
                 country_id=country_id).all()
-            return render_template("country.html", country_list=country_list, selected_country=country, city_list=city_list)
+            return render_template("country.html", country_list=country_list,
+                                                   selected_country=country, city_list=city_list)
     return render_template("country.html", country_list=country_list)
 
 
 @app.route("/add_city", methods=["GET", "POST"])
 def add_city():
+    '''Create city by country_id'''
     if request.method == "POST":
         country_id = request.form.get("country-id")
         city_name = request.form.get("city-name")
         city_record = City(country_id=country_id, city_name=city_name)
         session.add(city_record)
         session.commit()
-
         return render_template("country.html", country_list=country_list)
-    else:
-        return render_template("add_city.html", country_list=country_list)
+    return render_template("add_city.html", country_list=country_list)
 
 
 @app.route("/destinations", methods=["GET", "POST"])
-def destinations():
+def list_destinations():
+    '''Returns destinations by city_id'''
     if request.method == "POST":
         city_id = request.form.get("city-selector")
-        if city_id != None:
+        if city_id:
             destination_list = session.query(
                 Description).filter_by(city_id=city_id).all()
-            return render_template("country.html", country_list=country_list, city_id=city_id, destination_list=destination_list)
-        else:
-            return render_template("country.html", country_list=country_list)
+            return render_template("country.html", country_list=country_list,
+                                                   city_id=city_id,
+                                                   destination_list=destination_list)
+        return render_template("country.html", country_list=country_list)
+    return render_template("country.html", country_list=country_list)
 
 
 @app.route("/add_destination", methods=["GET", "POST"])
 def add_destination():
+    '''Create destination by city_id'''
     city_id = request.form.get("city-id")
     description = request.form.get("add-destination")
     destination_record = Description(city_id=city_id, description=description)
@@ -133,11 +144,14 @@ def add_destination():
     session.commit()
     destination_list = session.query(
         Description).filter_by(city_id=city_id).all()
-    return render_template("country.html", country_list=country_list, city_id=city_id, destination_list=destination_list)
+    return render_template("country.html", country_list=country_list,
+                                           city_id=city_id,
+                                           destination_list=destination_list)
 
 
 @app.route("/send_destinations", methods=["GET", "POST"])
 def send_destinations():
+    '''Send choosen destinations to the celery worker'''
     if request.method == "POST":
         desc_id = request.form.getlist('send_destinations')
         email = request.form.get('email')
@@ -155,7 +169,7 @@ def send_destinations():
         msg = ""
         for data in send_data:
             (country, city, desc) = data
-            msg += ' * ' + str(country.country_name) + ' ' + str(city.city_name) + ' ' + str(desc) + '\n'
+            msg += f" * {str(country.country_name)} {str(city.city_name)} {str(desc)}\n"
         email_data = {
             'subject': 'Your destinations',
             'to': email,
@@ -168,8 +182,8 @@ def send_destinations():
 
 @celery_app.task(serializer='json')
 def send_async_email(email_data):
+    '''Background task to send an email with Flask-Mail.'''
     mail = mail_config(app)
-    """Background task to send an email with Flask-Mail."""
     msg = Message(email_data['subject'],
                   sender=app.config['MAIL_USERNAME'],
                   recipients=[email_data['to']])

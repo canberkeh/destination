@@ -1,5 +1,5 @@
 from decouple import config
-from flask_mail import Mail, Message
+from flask_mail import Mail
 
 def mail_config(app):
     # Flask-mail conf
