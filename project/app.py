@@ -1,44 +1,22 @@
+from project.config.swagger_setup import swagger_config
 from flask import Flask, render_template, request, jsonify
 import requests
 from flask_mail import Mail, Message
 from decouple import config
-from flasgger import Swagger
 from flasgger.utils import swag_from
 from project.model import *
-from project.database import session
-from project.celery_worker import celery_app
-# from project.mail_config import mail
+from project.config.database import session
+from project.config.celery_worker import celery_app
+from project.config.mail_setup import mail_config
+
 
 app = Flask(__name__)
-
-# Flask-mail conf
-app.config['MAIL_SERVER'] = 'smtp.live.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = config('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = config('MAIL_PASSWORD')
-mail = Mail(app)
-
-app.config['SWAGGER'] = {'TITLE': 'swagger', 'uiversion': 2}
-swagger_config = {
-    'headers': [],
-    'specs': [
-        {
-            'endpoint': 'swagger',
-            'route': '/swagger.json'
-        }
-    ],
-    'static_url_path': "/flasgger_static",
-    'swagger_ui': True,
-    'specs_route': "/swagger/",
-}
-
-swagger = Swagger(app, config=swagger_config)
+swagger_config(app)
 
 
 # Country list has been added to db via restcountries
+API_URL = "https://restcountries.eu/rest/v2/name/"
 country_list = session.query(Country).all()
-api_url = "https://restcountries.eu/rest/v2/name/"
 
 
 @app.route('/api/countries', methods=['GET'])
@@ -94,7 +72,7 @@ def index():
     if request.method == "POST":
         name = request.form.get("country-selector")
         if name != None:
-            response_country = requests.get(api_url + name)
+            response_country = requests.get(API_URL + name)
             country_info = response_country.json()
             return render_template("index.html", country_info=country_info, country_list=country_list)
         else:
@@ -190,6 +168,7 @@ def send_destinations():
 
 @celery_app.task(serializer='json')
 def send_async_email(email_data):
+    mail = mail_config(app)
     """Background task to send an email with Flask-Mail."""
     msg = Message(email_data['subject'],
                   sender=app.config['MAIL_USERNAME'],

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from .database import Base
+from project.config.database import Base
 
 class Country(Base):
     __tablename__ = 'country'
