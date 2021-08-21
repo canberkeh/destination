@@ -1,10 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
-
-Base = declarative_base()
-metadata = Base.metadata
-
+from .database import Base
 
 class Country(Base):
     __tablename__ = 'country'
@@ -17,8 +14,11 @@ class Country(Base):
         backref="country"
     )
 
-    def __repr__(self):
-        return self.country_name
+    def serializer(self):
+        return {
+            'id': self.id,
+            'name': self.country_name
+        }
 
 
 class City(Base):
@@ -33,8 +33,12 @@ class City(Base):
         backref="city"
     )
 
-    def __repr__(self):
-        return self.city_name
+    def serializer(self):
+        return {
+            "id": self.id,
+            "country_id": self.country_id,
+            "city_name": self.city_name
+        }
 
 
 class Description(Base):

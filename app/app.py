@@ -1,17 +1,16 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, g
 from .model import *
-from .database import Session
+from .database import session
 from .celery_worker import celery_app
 import requests
 from flask_mail import Mail, Message
 from decouple import config
-import sqlite3
 from flasgger import Swagger
 from flasgger.utils import swag_from
 
 
 app = Flask(__name__)
-
+mail = Mail(app)
 
 # Flask-mail conf
 app.config['MAIL_SERVER'] = 'smtp.live.com'
@@ -19,7 +18,6 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = config('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = config('MAIL_PASSWORD')
-mail = Mail(app)
 
 
 app.config['SWAGGER'] = {'TITLE': 'swagger', 'uiversion': 2}
@@ -27,8 +25,8 @@ swagger_config = {
     'headers': [],
     'specs': [
         {
-            'endpoint': 'apispec_1',
-            'route': '/apispec_1.json'
+            'endpoint': 'swagger',
+            'route': '/swagger.json'
         }
     ],
     'static_url_path': "/flasgger_static",
@@ -40,43 +38,29 @@ swagger = Swagger(app, config=swagger_config)
 
 
 # Country list has been added to db via restcountries
-country_list = Session.session.query(Country).all()
+country_list = session.query(Country).all()
 api_url = "https://restcountries.eu/rest/v2/name/"
-
-
-# class AllCountryData(Resource):
-#     def get(self):
-#         # country = cur.execute('SELECT * FROM country;').fetchall()
-#         country = Country.query.all()
-#         result = users_schema.dump(country)
-#         return jsonify(country)
-# api.add_resource(AllCountryData, "/countryapi/all")
 
 
 @app.route('/api/countries', methods=['GET'])
 @swag_from('swagger/get_countries_config.yaml')
 def get_country_list():
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    countries = cur.execute(f'SELECT * FROM country;').fetchall()
+    countries = [country.serializer() for country in Country.query.all()]
     return jsonify(countries)
 
 
 @app.route('/api/countries/<id>', methods=['GET'])
 @swag_from('swagger/get_country_config.yaml')
 def get_country(id):
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    country = cur.execute(f'SELECT * FROM country where id={id};').fetchall()
+    country = Country.query.filter_by(id=id).first()
+    country = country.serializer()
     return jsonify(country)
 
 
 @app.route('/api/countries/<country_id>/cities', methods=['GET'])
 @swag_from('swagger/get_cities_config.yaml')
 def get_city_list(country_id):
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    cities = cur.execute(f'SELECT * FROM city where country_id={country_id};').fetchall()
+    cities = [city.serializer() for city in City.query.filter_by(country_id=country_id).all()]
     return jsonify(cities)
 
 
@@ -84,15 +68,26 @@ def get_city_list(country_id):
 @swag_from('swagger/post_city_config.yaml')
 def post_city(country_id):
     input_json = request.get_json()
-    name = input_json["name"]
-
-    conn = sqlite3.connect('database.db')
-    cur = conn.cursor()
-    city = cur.execute(f'INSERT INTO city ("country_id", "city_name") VALUES ({country_id}, "{name}");')
-    conn.commit()
+    city_name = input_json["name"]
+    city_record = City(country_id=country_id, city_name=city_name)
+    session.add(city_record)
+    session.commit()
+    session.close()
     return jsonify({
-        'success': 'success'
+        'success': country_id + ' ' + city_name + ' posted!'
     })
+
+
+@app.route('/api/countries/<id>/cities', methods=['DELETE'])
+@swag_from('swagger/delete_city_config.yaml')
+def delete_city(id):
+    city = session.query(City).get(id)
+    session.delete(city)
+    session.commit()
+    return jsonify({
+        'success': city.city_name + ' deleted'
+    })
+
 
 
 @app.route('/', methods=["GET", "POST"])
@@ -119,8 +114,8 @@ def city():
     if request.method == "POST":
         country_id = request.form.get("country-selector")
         if country_id != None:
-            country = Session.session.query(Country).get(country_id)
-            city_list = Session.session.query(City).filter_by(country_id=country_id).all()
+            country = session.query(Country).get(country_id)
+            city_list = session.query(City).filter_by(country_id=country_id).all()
             return render_template("country.html", country_list=country_list, selected_country=country, city_list=city_list)
         return render_template("country.html", country_list=country_list)
 
@@ -131,8 +126,8 @@ def add_city():
         country_id = request.form.get("country-id")
         city_name = request.form.get("city-name")
         city_record = City(country_id=country_id, city_name=city_name)
-        Session.session.add(city_record)
-        Session.session.commit()
+        session.add(city_record)
+        session.commit()
 
         return render_template("country.html", country_list=country_list)
     else:
@@ -144,19 +139,20 @@ def destinations():
     if request.method == "POST":
         city_id = request.form.get("city-selector")
         if city_id != None:
-            destination_list = Session.session.query(Description).filter_by(city_id=city_id).all()
+            destination_list = session.query(Description).filter_by(city_id=city_id).all()
             return render_template("country.html",country_list = country_list, city_id=city_id, destination_list=destination_list)
         else:
             return render_template("country.html", country_list=country_list)
+
 
 @app.route("/add_destination", methods=["GET", "POST"])
 def add_destination():
     city_id = request.form.get("city-id")
     description = request.form.get("add-destination")
     destination_record = Description(city_id=city_id, description=description)
-    Session.session.add(destination_record)
-    Session.session.commit()
-    destination_list = Session.session.query(Description).filter_by(city_id=city_id).all()   ###### buraya gelince tekrar list_destinations çağırılabilir mi??
+    session.add(destination_record)
+    session.commit()
+    destination_list = session.query(Description).filter_by(city_id=city_id).all()
     return render_template("country.html", country_list=country_list, city_id=city_id, destination_list = destination_list)
 
 
@@ -167,7 +163,7 @@ def send_destinations():
         email = request.form.get('email')
         send_data = []
         for description_id in desc_id:  # for ile değil/query içerisinde toplu olarak dönecek
-            result = Session.session.query(
+            result = session.query(
                 Country, City, Description,
             ).filter(
                 Country.id == City.country_id,
@@ -199,5 +195,4 @@ def send_async_email(email_data):
     msg.body = email_data['body']
     with app.app_context():
         mail.send(msg)
-
 

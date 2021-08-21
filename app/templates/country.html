@@ -49,7 +49,7 @@
                             required>
                             {% for city in city_list %}
                             <option value="{{ city.id }}">
-                                {{ city }}
+                                {{ city.city_name }}
                             </option>
                             {% endfor %}
                             <option value="" selected disabled hidden>Please Choose Country
