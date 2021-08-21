@@ -90,12 +90,12 @@ def country():
 def city():
     if request.method == "POST":
         country_id = request.form.get("country-selector")
-        if country_id != None:
+        if country_id:
             country = session.query(Country).get(country_id)
             city_list = session.query(City).filter_by(
                 country_id=country_id).all()
             return render_template("country.html", country_list=country_list, selected_country=country, city_list=city_list)
-        return render_template("country.html", country_list=country_list)
+    return render_template("country.html", country_list=country_list)
 
 
 @app.route("/add_city", methods=["GET", "POST"])
