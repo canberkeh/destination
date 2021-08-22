@@ -9,7 +9,6 @@ from project.config.celery_worker import celery_app
 from project.config.mail_setup import mail_config
 
 
-# Country list has been added to db via restcountries
 API_URL = "https://restcountries.eu/rest/v2/name/"
 country_list = session.query(Country).all()
 
@@ -44,7 +43,8 @@ def list_city():
             city_list = session.query(City).filter_by(
                 country_id=country_id).all()
             return render_template("country.html", country_list=country_list,
-                                                   selected_country=country, city_list=city_list)
+                                                   selected_country=country,
+                                                   city_list=city_list)
     return render_template("country.html", country_list=country_list)
 
 
@@ -67,8 +67,7 @@ def list_destinations():
     if request.method == "POST":
         city_id = request.form.get("city-selector")
         if city_id:
-            destination_list = session.query(
-                Description).filter_by(city_id=city_id).all()
+            destination_list = session.query(Destination).filter_by(city_id=city_id).all()
             return render_template("country.html", country_list=country_list,
                                                    city_id=city_id,
                                                    destination_list=destination_list)
@@ -80,55 +79,56 @@ def list_destinations():
 def add_destination():
     '''Create destination by city_id'''
     city_id = request.form.get("city-id")
-    description = request.form.get("add-destination")
-    destination_record = Description(city_id=city_id, description=description)
-    session.add(destination_record)
-    session.commit()
-    destination_list = session.query(
-        Description).filter_by(city_id=city_id).all()
-    return render_template("country.html", country_list=country_list,
-                                           city_id=city_id,
-                                           destination_list=destination_list)
+    if request.method == "POST":
+        destination = request.form.get("add-destination")
+        destination_record = Destination(city_id=city_id, destination=destination)
+        session.add(destination_record)
+        session.commit()
+        destination_list = session.query(Destination).filter_by(city_id=city_id).all()
+        return render_template("country.html", country_list=country_list,
+                                               city_id=city_id,
+                                               destination_list=destination_list)
+    return render_template("country.html", country_list=country_list)
 
 
 @app.route("/send_destinations", methods=["GET", "POST"])
 def send_destinations():
     '''Send choosen destinations to the celery worker'''
     if request.method == "POST":
-        desc_id = request.form.getlist('send_destinations')
+        destination_id_list = request.form.getlist('send_destinations')
         email = request.form.get('email')
         send_data = []
-        for description_id in desc_id:  # for ile değil/query içerisinde toplu olarak dönecek
-            result = session.query(
-                Country, City, Description,
+        for destination_id in destination_id_list:
+            destination_list = session.query(
+                Country, City, Destination,
             ).filter(
                 Country.id == City.country_id,
             ).filter(
-                City.id == Description.city_id,
-            ).filter(Description.id == int(description_id)).all()
-            for i in result:
-                send_data.append(i)
-        msg = ""
+                City.id == Destination.city_id,
+            ).filter(Destination.id == int(destination_id)).all()
+            for destination in destination_list:
+                send_data.append(destination)
+        message = ""
         for data in send_data:
-            (country, city, desc) = data
-            msg += f" * {str(country.country_name)} {str(city.city_name)} {str(desc)}\n"
+            (country, city, destination) = data
+            message += f" * {str(country.country_name)} {str(city.city_name)} {str(destination.destination)}\n"
         email_data = {
             'subject': 'Your destinations',
             'to': email,
-            'body': msg
+            'body': message
         }
         print(email_data)
         send_async_email.delay(email_data)
     return render_template("country.html", country_list=country_list)
 
 
-@celery_app.task(serializer='json')
+@celery_app.task()
 def send_async_email(email_data):
     '''Background task to send an email with Flask-Mail.'''
     mail = mail_config()
-    msg = Message(email_data['subject'],
+    message = Message(email_data['subject'],
                   sender=app.config['MAIL_USERNAME'],
                   recipients=[email_data['to']])
-    msg.body = email_data['body']
+    message.body = email_data['body']
     with app.app_context():
-        mail.send(msg)
+        mail.send(message)

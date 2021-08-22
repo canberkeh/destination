@@ -1,3 +1,4 @@
+'''Api entrypoint'''
 from flasgger.utils import swag_from
 from flask import jsonify, request
 from project.model import Country, City
