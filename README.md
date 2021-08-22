@@ -7,7 +7,7 @@
 * [SQLAlchemy](https://docs.sqlalchemy.org/) - ORM
 * [Alembic](https://alembic.sqlalchemy.org/) - Database Migrations
 * [Flasgger](https://github.com/flasgger/flasgger) - Swagger tool
-* [Celery](https://docs.celeryproject.org/en/stable/) - for Task Queues
+* [Celery](https://docs.celeryproject.org/en/stable/) - for Task Queues --> <img src="https://img.shields.io/badge/rabbitmq-%23FF6600.svg?&style=for-the-badge&logo=rabbitmq&logoColor=white"/>
 * [Pip](https://pypi.org/project/pip/) - Dependency Management
 
 
@@ -51,7 +51,7 @@ $ pip install -r requirements.txt
 
 >
 
-    > from project.model import Base
+    > from project.config.database import Base
 
 >
 
@@ -85,7 +85,7 @@ $ pip install -r requirements.txt
 ### Run Project
 
 ```
-    >   python project\run.py
+    >   python run.py
 ```
 
 -----------------------------
@@ -95,6 +95,9 @@ $ pip install -r requirements.txt
 
 -------------------------------------
 ![s22](https://user-images.githubusercontent.com/73230039/126903957-1e10a53e-a3f2-42a7-8cba-eacc291e01a5.png)
+-------------------------------------
+![swag1](https://user-images.githubusercontent.com/73230039/130350965-20448991-10c3-420a-8fc0-91b703a7ffae.png)
+    > http://127.0.0.1:5000/swagger/
 ```
 api_url = "https://restcountries.eu/rest/v2/name/"
 ```

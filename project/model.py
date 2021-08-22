@@ -3,6 +3,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from project.config.database import Base
 
+
 class Country(Base):
     __tablename__ = 'country'
 
