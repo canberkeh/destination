@@ -1,3 +1,4 @@
+'''Swagger configuration'''
 from flasgger import Swagger
 from run import app
 
