@@ -1,3 +1,5 @@
+tags:
+- CITY
 summary: "Delete City"
 description: "This is a simple API which deletes city"
 consumes:
@@ -8,6 +10,7 @@ parameters:
 - in: "path"
   name: "city_id"
   type: "integer"
+  required: true
   schema:
     type: "object"
     properties: 
@@ -15,6 +18,8 @@ parameters:
         type: "string"
 responses:
   200:
-    description: "City"
-  500:
+    description: "Country"
+  400:
+    description: "Bad request"
+  404:
     description: "Invalid input"

@@ -1,3 +1,5 @@
+tags:
+- COUNTRY
 summary: "Get All Countries"
 description: "This is a simple API which returns country list"
 consumes:
@@ -6,7 +8,11 @@ produces:
 - "application/json"
 responses:
   200:
-    description: "Country List"
+    description: "Country"
+  400:
+    description: "Bad request"
+  404:
+    description: "Invalid input"
 
 
 

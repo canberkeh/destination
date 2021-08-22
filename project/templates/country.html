@@ -19,7 +19,7 @@
     <br>
     <div class="container">
         <div class="search card card-body" style="border-radius: 10px;">
-            <h4>Find destinations</h4>
+            <h4>Find Destinations</h4>
             <form action="/city" method="POST">
                 <select name="country-selector" class="form-control" method="GET" style="border-radius: 10px;" required>
                     <option value="" selected disabled hidden>Please Choose Country</option>
@@ -109,7 +109,7 @@
                     <form style="width:500px; display:inline-block;" action="/add_destination" method="POST">
                         <label for="add-destination"> Add new destination</label><br>
                         <input type="hidden" name="city-id" value="{{city_id}}">
-                        <textarea name="add-destination" style="border-radius: 10px;"></textarea><br>
+                        <textarea name="add-destination" style="border-radius: 10px;" required></textarea><br>
                         <button type="submit" class="btn btn-warning" formaction="/add_destination">Add destination</button>
                     </form>
                 </div>
@@ -121,7 +121,7 @@
                         <label for="add-destination"> No destinations here!</label><br>
                         <label for="add-destination"> Add new destination</label><br>
                         <input type="hidden" name="city-id" value="{{city_id}}">
-                        <textarea name="add-destination" style="border-radius: 10px;"></textarea><br>
+                        <textarea name="add-destination" style="border-radius: 10px;" required></textarea><br>
                         <button type="submit" class="btn btn-warning" formaction="/add_destination">Add destination</button>
                     </form>
                 </div>

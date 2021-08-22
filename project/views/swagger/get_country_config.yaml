@@ -1,5 +1,7 @@
+tags:
+- COUNTRY
 summary: "Get Country"
-description: "This is a simple API which returns country"
+description: "This is a simple API which returns country by id"
 consumes:
 - "application/json"
 produces:

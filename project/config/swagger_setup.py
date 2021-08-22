@@ -15,6 +15,14 @@ swagger_config = {
     'static_url_path': "/flasgger_static",
     'swagger_ui': True,
     'specs_route': "/swagger/",
+    "info": {
+        "title": "API Doc",
+        "description": "API for my data",
+        "contact": {
+        "email": "canberkehorozal@gmail.com",
+        "url": "https://github.com/canberkeh/",
+        }
+    }
 }
 
 swagger = Swagger(app, config=swagger_config)

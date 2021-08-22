@@ -1,5 +1,7 @@
+tags:
+- CITY
 summary: "Get Cities"
-description: "This is a simple API which returns cities"
+description: "This is a simple API which returns cities by country_id"
 consumes:
 - "application/json"
 produces:
@@ -11,6 +13,8 @@ parameters:
   required: true
 responses:
   200:
-    description: "Cities"
-  500:
+    description: "Country"
+  400:
+    description: "Bad request"
+  404:
     description: "Invalid input"
