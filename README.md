@@ -72,14 +72,14 @@ $ pip install -r requirements.txt
 
 > 6- Run insert_to_db_from_api.py to insert country data to db
 
-    >   python project\insert_to_db_from_api.py
+    >   python insert_to_db_from_api.py
 
 
 ### Start Celery worker
 
 > 8- Run celery worker
 
-    >   celery -A project.config.celery_worker worker --pool=solo -l info  (--pool=solo for windows)
+    >   celery -A project.config.celery_worker worker --pool=solo -l info
 
 ### Run Project
 
