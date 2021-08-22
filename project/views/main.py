@@ -3,7 +3,7 @@ from flask import render_template, request
 import requests
 from flask_mail import Message
 from run import app
-from project.model import Country, City, Description
+from project.model import Country, City, Destination
 from project.config.database import session
 from project.config.celery_worker import celery_app
 from project.config.mail_setup import mail_config

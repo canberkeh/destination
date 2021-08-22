@@ -1,7 +1,9 @@
 '''Database Models'''
 from sqlalchemy import Column, String, Integer, ForeignKey, Text
 from sqlalchemy.orm import relationship
-from config.database import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 
 class Country(Base):
@@ -15,10 +17,9 @@ class Country(Base):
     id = Column(Integer, primary_key=True)
     country_name = Column(String(80), nullable=False)
     city_relation = relationship("City",
-        cascade="all, delete",
-        passive_deletes=True,
-        backref="country"
-    )
+                                 cascade="all, delete",
+                                 passive_deletes=True,
+                                 backref="country")
 
     def serializer(self):
         '''Returns json result to use in swagger ui'''
@@ -41,10 +42,9 @@ class City(Base):
     country_id = Column(Integer, ForeignKey('country.id', ondelete="CASCADE"))
     city_name = Column(String(80), nullable=False)
     destination_relation = relationship("Destination",
-        cascade="all, delete",
-        passive_deletes=True,
-        backref="city"
-    )
+                                        cascade="all, delete",
+                                        passive_deletes=True,
+                                        backref="city")
 
     def serializer(self):
         '''Returns json result to use in swagger ui'''

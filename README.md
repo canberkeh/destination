@@ -51,7 +51,7 @@ $ pip install -r requirements.txt
 
 >
 
-    > from project.config.database import Base
+    > from project.model import Base
 
 >
 

@@ -1,7 +1,6 @@
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-
+from project.model import Base
 
 engine = create_engine('sqlite:///project/database.db', connect_args={"check_same_thread": False})
 
@@ -9,7 +8,6 @@ engine = create_engine('sqlite:///project/database.db', connect_args={"check_sam
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
-
 session = db_session()
-Base = declarative_base()
+
 Base.query = db_session.query_property()
