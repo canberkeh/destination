@@ -24,7 +24,6 @@ $ pip install python-virtualenv
 $ python -m venv venv
 $ . venv/bin/activate
 
-Install all project dependencies using:
 ```
 
 Install all project dependencies using:
@@ -95,10 +94,10 @@ $ pip install -r requirements.txt
 
 -------------------------------------
 ![s22](https://user-images.githubusercontent.com/73230039/126903957-1e10a53e-a3f2-42a7-8cba-eacc291e01a5.png)
--------------------------------------
-![swag1](https://user-images.githubusercontent.com/73230039/130350965-20448991-10c3-420a-8fc0-91b703a7ffae.png)
-    > http://127.0.0.1:5000/swagger/
 ```
 api_url = "https://restcountries.eu/rest/v2/name/"
 ```
------------------------------------
+-------------------------------------
+![swag1](https://user-images.githubusercontent.com/73230039/130350965-20448991-10c3-420a-8fc0-91b703a7ffae.png)
+    > http://127.0.0.1:5000/swagger/
+
