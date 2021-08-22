@@ -1,8 +1,10 @@
-from flask import Flask
+'''Run project'''
 import os
+from flask import Flask
 
 template_dir = os.path.abspath('./project/templates')
 app = Flask(__name__, template_folder=template_dir)
+
 from project.views.api import *
 from project.views.main import *
 

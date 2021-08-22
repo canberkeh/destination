@@ -11,8 +11,9 @@ from project.config.swagger_setup import *
 def get_country_list():
     '''Returns all countries in swagger'''
     countries = [country.serializer() for country in Country.query.all()]
-    return jsonify(countries)
-
+    if countries:
+        return jsonify(countries)
+    return 'Country not found', 404
 
 @app.route('/api/countries/<country_id>', methods=['GET'])
 @swag_from('swagger/get_country_config.yaml')
