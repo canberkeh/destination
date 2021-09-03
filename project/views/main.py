@@ -97,7 +97,7 @@ def send_destinations():
     if request.method == "POST":
         destination_id_list = request.form.getlist('send_destinations')
         email = request.form.get('email')
-        
+        send_data = []
         for destination_id in destination_id_list:
             destination_list = session.query(
                 Country, City, Destination,
@@ -106,7 +106,8 @@ def send_destinations():
             ).filter(
                 City.id == Destination.city_id,
             ).filter(Destination.id == int(destination_id)).all()
-            send_data = [destination for destination in destination_list]
+            for destination in destination_list:
+                send_data.append(destination)
         message = ""
         for data in send_data:
             (country, city, destination) = data
