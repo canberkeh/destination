@@ -6,7 +6,7 @@ from project.config.database import session
 
 def insert_to_db():
     '''Run script to insert country data to database from api'''
-    API_URL = "https://restcountries.eu/rest/v2/all"
+    API_URL = "https://restcountries.com/v2/all"
     response_country = requests.get(API_URL)
     country_info = response_country.json()
     country_list = [country_dict["name"] for country_dict in country_info for element in country_dict.keys() if "name" in element]

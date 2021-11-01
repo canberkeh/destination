@@ -9,7 +9,7 @@ from project.config.celery_worker import celery_app
 from project.config.mail_setup import mail_config
 
 
-API_URL = "https://restcountries.eu/rest/v2/name/"
+API_URL = "https://restcountries.com/rest/v2/name/"
 country_list = session.query(Country).all()
 
 
